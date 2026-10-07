@@ -1,0 +1,1 @@
+This folder contains the server-side .NET API for the application.

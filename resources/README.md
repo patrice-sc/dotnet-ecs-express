@@ -1,0 +1,1 @@
+This folder contains reusable resources shared across application components. Store reusable Terraform modules in `terraform/` and Azure DevOps templates in `azuredevops/`. Keep environment-specific deployment configurations under `infra/`, organized by target (for example, `infra/aws/`, `infra/azure/`, or `infra/kubernetes/`).

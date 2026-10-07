@@ -1,0 +1,1 @@
+This folder contains the .NET Aspire AppHost, which configures and orchestrates the application's services for local development.

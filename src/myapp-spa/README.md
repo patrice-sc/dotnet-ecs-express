@@ -1,0 +1,1 @@
+This folder contains the Angular frontend for the application.

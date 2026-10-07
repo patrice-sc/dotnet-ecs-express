@@ -1,0 +1,1 @@
+This folder contains Terraform configuration for deploying the application to AWS. Keep AWS-specific infrastructure here; place configurations for other targets, such as Azure or Kubernetes, in sibling folders under `infra/` (for example, `infra/azure/` or `infra/kubernetes/`). Use `resources/terraform/` for reusable Terraform modules shared across environments.
