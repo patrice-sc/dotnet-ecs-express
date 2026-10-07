@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:5000
+
+### Check API health
+GET {{baseUrl}}/health
+Accept: application/json
+
+### Get greeting and server details
+GET {{baseUrl}}/api/hello
+Accept: application/json
+
+### Check whether the simulated secret is configured
+GET {{baseUrl}}/api/secret-status
+Accept: application/json

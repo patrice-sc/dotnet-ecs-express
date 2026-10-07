@@ -1,0 +1,48 @@
+<main class="card">
+  <p class="eyebrow">.NET ECS Express</p>
+  <h1>Server greeting</h1>
+
+  @if (greeting(); as response) {
+    <p class="message">{{ response.message }}</p>
+    <dl>
+      <div>
+        <dt>Server version</dt>
+        <dd>{{ response.version }}</dd>
+      </div>
+      <div>
+        <dt>Server uptime</dt>
+        <dd>{{ response.uptimeSeconds | number: '1.0-0' }} seconds</dd>
+      </div>
+    </dl>
+  } @else if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  } @else {
+    <p role="status">Connecting to the API…</p>
+  }
+  <h2>Simulated client credentials</h2>
+  <p>Demo placeholders only. Real credentials must never be exposed to the browser.</p>
+  @if (credentials(); as response) {
+    <dl>
+      <div>
+        <dt>Configured</dt>
+        <dd>{{ response.isConfigured ? 'Yes' : 'No' }}</dd>
+      </div>
+      <div>
+        <dt>Source</dt>
+        <dd>{{ response.source ?? 'Unknown' }}</dd>
+      </div>
+      <div>
+        <dt>Client ID</dt>
+        <dd>{{ response.clientId ?? 'Hidden or not configured' }}</dd>
+      </div>
+      <div>
+        <dt>Client secret (simulated)</dt>
+        <dd>{{ response.clientSecret ?? 'Hidden or not configured' }}</dd>
+      </div>
+    </dl>
+  } @else if (credentialsError()) {
+    <p class="error" role="alert">{{ credentialsError() }}</p>
+  } @else {
+    <p role="status">Loading simulated credentials...</p>
+  }
+</main>
