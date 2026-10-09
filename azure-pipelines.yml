@@ -1,3 +1,31 @@
-steps:
-- script: |
-    echo "Hello"
+trigger:
+  branches:
+    include:
+    - '*'
+
+pr:
+  branches:
+    include:
+    - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: Dotnet
+  displayName: Build .NET container
+  steps:
+  - template: resources/azuredevops/dotnet-ci.yml
+    parameters:
+      solution: DotnetEcsExpress.sln
+      publishProject: src/MyApp.ApiService/MyApp.ApiService.csproj
+      artifactName: api
+
+- job: Angular
+  displayName: Build and package Angular
+  steps:
+  - template: resources/azuredevops/angular-ci.yml
+    parameters:
+      workingDirectory: src/myapp-spa
+      runTests: false
+      artifactName: spa

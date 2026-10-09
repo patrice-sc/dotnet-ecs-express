@@ -1,0 +1,78 @@
+parameters:
+- name: solution
+  type: string
+- name: publishProject
+  type: string
+- name: sdkVersion
+  type: string
+  default: 10.0.x
+- name: configuration
+  type: string
+  default: Release
+- name: testProjects
+  type: object
+  default: []
+- name: runtimeIdentifier
+  type: string
+  default: linux-x64
+- name: containerRepository
+  type: string
+  default: myapp-api
+- name: containerImageTag
+  type: string
+  default: $(Build.BuildId)
+- name: artifactName
+  type: string
+  default: api
+
+steps:
+- task: UseDotNet@2
+  displayName: Install .NET SDK
+  inputs:
+    packageType: sdk
+    version: ${{ parameters.sdkVersion }}
+
+- task: DotNetCoreCLI@2
+  displayName: Restore .NET dependencies
+  inputs:
+    command: restore
+    projects: ${{ parameters.solution }}
+
+- task: DotNetCoreCLI@2
+  displayName: Build .NET solution
+  inputs:
+    command: build
+    projects: ${{ parameters.solution }}
+    arguments: --configuration ${{ parameters.configuration }} --no-restore
+
+- ${{ each project in parameters.testProjects }}:
+  - task: DotNetCoreCLI@2
+    displayName: Test ${{ project }}
+    inputs:
+      command: test
+      projects: ${{ project }}
+      arguments: --configuration ${{ parameters.configuration }} --no-build --no-restore
+      publishTestResults: true
+
+- task: DotNetCoreCLI@2
+  displayName: Build container image with .NET SDK
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: ${{ parameters.publishProject }}
+    arguments: >-
+      --configuration ${{ parameters.configuration }}
+      --runtime ${{ parameters.runtimeIdentifier }}
+      --self-contained false
+      /t:PublishContainer
+      -p:ContainerRepository=${{ parameters.containerRepository }}
+      -p:ContainerImageTag=${{ parameters.containerImageTag }}
+      -p:ContainerArchiveOutputPath="$(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}/image.tar.gz"
+    zipAfterPublish: false
+    modifyOutputPath: false
+
+- task: PublishPipelineArtifact@1
+  displayName: Upload container image archive
+  inputs:
+    targetPath: $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}
+    artifact: ${{ parameters.artifactName }}

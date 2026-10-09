@@ -1,0 +1,46 @@
+parameters:
+- name: workingDirectory
+  type: string
+- name: nodeVersion
+  type: string
+  default: 22.x
+- name: configuration
+  type: string
+  default: production
+- name: runTests
+  type: boolean
+  default: true
+- name: artifactName
+  type: string
+  default: spa
+
+steps:
+- task: NodeTool@0
+  displayName: Install Node.js
+  inputs:
+    versionSpec: ${{ parameters.nodeVersion }}
+
+- script: npm ci
+  displayName: Restore Angular dependencies
+  workingDirectory: ${{ parameters.workingDirectory }}
+
+- ${{ if eq(parameters.runTests, true) }}:
+  - script: npm test -- --watch=false --browsers=ChromeHeadless
+    displayName: Test Angular
+    workingDirectory: ${{ parameters.workingDirectory }}
+    env:
+      CI: 'true'
+
+- script: npm run build -- --configuration "$BUILD_CONFIGURATION" --output-path "$ARTIFACT_OUTPUT"
+  displayName: Build Angular
+  workingDirectory: ${{ parameters.workingDirectory }}
+  env:
+    CI: 'true'
+    BUILD_CONFIGURATION: ${{ parameters.configuration }}
+    ARTIFACT_OUTPUT: $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}
+
+- task: PublishPipelineArtifact@1
+  displayName: Upload Angular artifact
+  inputs:
+    targetPath: $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}
+    artifact: ${{ parameters.artifactName }}

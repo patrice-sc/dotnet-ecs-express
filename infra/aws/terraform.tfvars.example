@@ -1,0 +1,7 @@
+aws_region              = "eu-west-1"
+name                    = "myapp"
+vpc_id                  = "vpc-replace-me"
+private_subnet_ids      = ["subnet-replace-a", "subnet-replace-b"]
+database_engine_version = "16.6"
+deploy_service          = false
+container_image_tag     = "initial"

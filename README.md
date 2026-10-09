@@ -34,3 +34,20 @@ This proxy is only used by the development server; it is not included in the pro
 - `resources/azuredevops/` — reusable Azure DevOps pipeline templates.
 
 Keep deployment configuration specific to a provider under `infra/<target>/`; keep shared building blocks under `resources/`.
+
+## Continuous integration
+
+[azure-pipelines.yml](azure-pipelines.yml) runs parallel .NET and Angular CI jobs
+using the [reusable Azure DevOps templates](resources/azuredevops/README.md).
+The jobs build the Aspire/API solution, an API container using the .NET SDK
+(no Dockerfile required), and the production frontend, then upload `api`
+(container image archive) and `spa` pipeline artifacts. Test execution is configurable but currently
+disabled because the sample has no test suites. Deployment is not included.
+
+## AWS infrastructure
+
+The [AWS Terraform configuration](infra/aws/README.md) uses the
+[ECS Express Mode module](resources/terraform/ecs-express/README.md) to provision
+ECR, an ECS Express Mode service, and Aurora PostgreSQL Serverless v2 in existing
+private subnets. Bootstrap ECR and the database first, push the CI container
+image, then enable the service. The sample API does not yet query the database.
