@@ -1,0 +1,80 @@
+parameters:
+- name: workingDirectory
+  type: string
+- name: serviceConnection
+  type: string
+- name: stateBucket
+  type: string
+- name: stateKey
+  type: string
+- name: awsRegion
+  type: string
+- name: repositoryName
+  type: string
+- name: terraformVersion
+  type: string
+  default: 1.16.5
+- name: apply
+  type: boolean
+  default: false
+
+steps:
+- task: TerraformInstaller@1
+  displayName: Install Terraform
+  inputs:
+    terraformVersion: ${{ parameters.terraformVersion }}
+
+- task: TerraformTask@5
+  displayName: Check Terraform formatting
+  inputs:
+    provider: aws
+    command: custom
+    customCommand: fmt
+    commandOptions: -check -diff
+    workingDirectory: ${{ parameters.workingDirectory }}
+    environmentServiceNameAWS: ${{ parameters.serviceConnection }}
+
+- task: TerraformTask@5
+  displayName: Initialize Terraform with S3 state
+  inputs:
+    provider: aws
+    command: init
+    workingDirectory: ${{ parameters.workingDirectory }}
+    backendServiceAWS: ${{ parameters.serviceConnection }}
+    backendAWSBucketName: ${{ parameters.stateBucket }}
+    backendAWSKey: ${{ parameters.stateKey }}
+    commandOptions: '-input=false -lockfile=readonly -backend-config=region=${{ parameters.awsRegion }}'
+
+- task: TerraformTask@5
+  displayName: Validate Terraform
+  inputs:
+    provider: aws
+    command: validate
+    workingDirectory: ${{ parameters.workingDirectory }}
+
+- task: TerraformTask@5
+  name: starterPlan
+  displayName: Plan AWS starter
+  inputs:
+    provider: aws
+    command: plan
+    workingDirectory: ${{ parameters.workingDirectory }}
+    environmentServiceNameAWS: ${{ parameters.serviceConnection }}
+    commandOptions: -input=false -lock-timeout=5m -out=starter.tfplan
+  env:
+    TF_VAR_aws_region: ${{ parameters.awsRegion }}
+    TF_VAR_repository_name: ${{ parameters.repositoryName }}
+
+- ${{ if eq(parameters.apply, true) }}:
+  - task: TerraformTask@5
+    displayName: Apply saved AWS starter plan
+    condition: and(succeeded(), eq(variables['starterPlan.changesPresent'], 'true'))
+    inputs:
+      provider: aws
+      command: apply
+      workingDirectory: ${{ parameters.workingDirectory }}
+      environmentServiceNameAWS: ${{ parameters.serviceConnection }}
+      commandOptions: -input=false -lock-timeout=5m starter.tfplan
+    env:
+      TF_VAR_aws_region: ${{ parameters.awsRegion }}
+      TF_VAR_repository_name: ${{ parameters.repositoryName }}

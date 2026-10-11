@@ -82,6 +82,37 @@ Template paths are relative to the YAML file referencing them, so adjust paths
 when calling these templates from another folder.
 
 Artifact upload uses `PublishPipelineArtifact@1`, which is supported by Azure
-DevOps Services, not Azure DevOps Server. Deployment, credentials, registry pushes,
-and Terraform execution are intentionally outside these CI templates. Keep
+DevOps Services, not Azure DevOps Server. Deployment, credentials, and registry pushes
+are intentionally outside the application CI templates. Keep
 target-specific deployment configuration under `infra/<target>/`.
+
+## Terraform AWS: `terraform-aws.yml`
+
+Uses Microsoft DevLabs `TerraformInstaller@1` and `TerraformTask@5` from the
+[Terraform extension](https://marketplace.visualstudio.com/items?itemName=ms-devlabs.custom-terraform-tasks).
+Install it in the Azure DevOps organization before running this template.
+It checks formatting, initializes an existing S3 backend, validates, and saves
+a plan. Optional apply consumes that exact plan in the same job, only when the
+plan reports changes. It does not create a state bucket or service connection.
+
+| Parameter | Default | Purpose |
+| --- | --- | --- |
+| `workingDirectory` | Required | Directory containing the root Terraform configuration. |
+| `serviceConnection` | Required | Authorized AWS service connection for backend and provider access. |
+| `stateBucket` | Required | Existing S3 state bucket. |
+| `stateKey` | Required | Unique state object key for this deployment. |
+| `awsRegion` | Required | Region for the state bucket and AWS resources. |
+| `repositoryName` | Required | Value supplied as `TF_VAR_repository_name`. |
+| `terraformVersion` | `1.16.5` | Pinned Terraform CLI version. |
+| `apply` | `false` | Apply the saved plan after a successful plan with changes. |
+
+This template expects an S3 backend block, a committed provider lock file, and
+root variables named `aws_region` and `repository_name`. The starter enables
+encryption and native S3 state locking (Terraform >= 1.10). Run the template
+once per job because the plan step has a fixed name.
+
+The separate, manual [starter pipeline](../../azure-pipelines-terraform.yml)
+uses `aws-terraform-dev` and creates only an empty ECR repository. See the
+[starter instructions](../../infra/aws-starter/README.md) for prerequisites,
+permissions, local mocked tests, and cleanup. The existing application CI
+pipeline and full ECS/database configuration are unchanged.

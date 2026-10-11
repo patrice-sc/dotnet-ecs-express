@@ -30,6 +30,7 @@ This proxy is only used by the development server; it is not included in the pro
 - `src/myapp-spa/` — Angular frontend.
 - `aspire/MyApp.AppHost/` — .NET Aspire AppHost for starting the API and Angular frontend and demonstrating secret-parameter injection.
 - `infra/aws/` — AWS-specific infrastructure configuration. Add other targets, such as Azure or Kubernetes, in their own subfolders under `infra/`.
+- `infra/aws-starter/` — minimal, independent AWS Terraform example creating only an empty ECR repository.
 - `resources/terraform/` — reusable Terraform modules shared across deployment targets.
 - `resources/azuredevops/` — reusable Azure DevOps pipeline templates.
 
@@ -45,6 +46,14 @@ The jobs build the Aspire/API solution, an API container using the .NET SDK
 disabled because the sample has no test suites. Deployment is not included.
 
 ## AWS infrastructure
+
+Start with the [minimal AWS Terraform example](infra/aws-starter/README.md) and
+its separate, manual [Azure DevOps pipeline](azure-pipelines-terraform.yml).
+It uses Microsoft DevLabs Terraform tasks through a
+[reusable step template](resources/azuredevops/terraform-aws.yml),
+the `aws-terraform-dev` service connection, and an existing S3 state bucket.
+It plans by default; opt into apply to create one empty ECR repository without
+ECS, networking, or a database.
 
 The [AWS Terraform configuration](infra/aws/README.md) uses the
 [ECS Express Mode module](resources/terraform/ecs-express/README.md) to provision

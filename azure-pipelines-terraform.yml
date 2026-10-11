@@ -1,0 +1,31 @@
+trigger: none
+pr: none
+
+parameters:
+- name: apply
+  displayName: Apply the saved plan (creates an empty ECR repository)
+  type: boolean
+  default: false
+- name: awsRegion
+  type: string
+  default: eu-west-3
+- name: repositoryName
+  type: string
+  default: dotnet-ecs-express-starter
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: Terraform
+  displayName: Terraform AWS starter
+  steps:
+  - template: resources/azuredevops/terraform-aws.yml
+    parameters:
+      workingDirectory: $(System.DefaultWorkingDirectory)/infra/aws-starter
+      serviceConnection: aws-terraform-dev
+      stateBucket: devops-594109395220-eu-west-3-an
+      stateKey: dotnet-ecs-express/aws-starter/terraform.tfstate
+      awsRegion: ${{ parameters.awsRegion }}
+      repositoryName: ${{ parameters.repositoryName }}
+      apply: ${{ parameters.apply }}
